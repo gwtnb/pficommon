@@ -2,7 +2,6 @@
 subdirs = [
   'lang',
   'concurrent',
-  'network',
   'system',
   'data',
   'math',
@@ -10,7 +9,7 @@ subdirs = [
   ]
 
 def options(opt):
-  opt.recurse('network')
+  pass
 
 def configure(conf):
   conf.check_cxx(lib = 'pthread')
@@ -27,7 +26,6 @@ def build(bld):
       'pficommon_data',
       'pficommon_lang',
       'pficommon_math',
-      'pficommon_network',
       'pficommon_system',
       'pficommon_text',
       ])

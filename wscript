@@ -43,10 +43,6 @@ def configure(conf):
   print("""
 pficommon has been configured as follows:
 
-[Modules]
-FCGI module:             %s
-MessagePack RPC module:  %s
-
 [Build information]
 Package:                 %s
 build (compile on):      %s
@@ -54,9 +50,7 @@ host endian:             %s
 Compiler:                %s
 Compiler version:        %s
 CXXFLAGS:                %s
-""" % (conf.env.BUILD_FCGI and 'yes' or 'no',
-       conf.env.BUILD_MPRPC and 'yes' or 'no',
-       APPNAME + '-' + VERSION,
+""" % (APPNAME + '-' + VERSION,
        conf.env.DEST_CPU + '-' + conf.env.DEST_OS,
        sys.byteorder,
        conf.env.COMPILER_CXX,
