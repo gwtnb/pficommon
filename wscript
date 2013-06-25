@@ -45,13 +45,7 @@ pficommon has been configured as follows:
 
 [Modules]
 FCGI module:             %s
-Database module:         %s
-  have MySQL lib:          %s
-  have PostgreSQL lib:     %s
 MessagePack RPC module:  %s
-
-[Visualization]
-Magick++ impl:           %s
 
 [Build information]
 Package:                 %s
@@ -61,11 +55,7 @@ Compiler:                %s
 Compiler version:        %s
 CXXFLAGS:                %s
 """ % (conf.env.BUILD_FCGI and 'yes' or 'no',
-       (not Options.options.disable_database) and 'yes' or 'no',
-       conf.env.BUILD_MYSQL and 'yes' or 'no',
-       conf.env.BUILD_PGSQL and 'yes' or 'no',
        conf.env.BUILD_MPRPC and 'yes' or 'no',
-       conf.env.BUILD_MAGICKPP and 'yes' or 'no',
        APPNAME + '-' + VERSION,
        conf.env.DEST_CPU + '-' + conf.env.DEST_OS,
        sys.byteorder,
