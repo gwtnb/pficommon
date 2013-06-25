@@ -10,7 +10,7 @@ import os
 import re
 import waflib
 
-subdirs = 'src tools'
+subdirs = 'src'
 
 def options(opt):
   opt.load('compiler_cxx')
