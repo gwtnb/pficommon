@@ -32,7 +32,7 @@
 #ifndef INCLUDE_GUARD_PFI_CONCURRENT_PCBUF_H_
 #define INCLUDE_GUARD_PFI_CONCURRENT_PCBUF_H_
 
-#include <deque>
+#include <vector>
 
 #include "mutex.h"
 #include "condition.h"
@@ -46,49 +46,55 @@ namespace concurrent {
 template <class T>
 class pcbuf : pfi::lang::noncopyable {
 public:
-  explicit pcbuf(size_t capacity) : cap_(capacity) {}
+  explicit pcbuf(size_t capacity) : q_(capacity), first_(0), last_(0), full_(capacity == 0) {}
 
   size_t size() const {
     {
       pfi::concurrent::scoped_lock lock(m_);
       if (lock)
-        return q_.size();
+        return size_();
     }
     return 0; /* NOTREACHED */
   }
 
   size_t capacity() const {
-    return cap_;
+      return q_.size();
   }
 
   bool empty() const {
     {
       pfi::concurrent::scoped_lock lock(m_);
       if (lock)
-        return q_.empty();
+        return empty_();
     }
     return false; /* NOTREACHED */
   }
 
   void clear() {
+    bool should_notify = false;
     {
       pfi::concurrent::scoped_lock lock(m_);
-      if (lock)
-        q_.clear();
+      if (lock) {
+        if (full_)
+          should_notify = true;
+        first_ = last_ = 0;
+        full_ = false;
+      }
     }
-    cond_.notify_all();
+    if (should_notify)
+      cond_push_.notify_all();
   }
 
   void push(const T& value) {
     {
       pfi::concurrent::scoped_lock lock(m_);
       if (lock) {
-        while (q_.size() >= cap_)
-          cond_.wait(m_);
-        q_.push_back(value);
+        while (full_)
+          cond_push_.wait(m_);
+        push_(value);
       }
     }
-    cond_.notify_all();
+    cond_pop_.notify();
   }
 
   bool push(const T& value, double second) {
@@ -96,15 +102,15 @@ public:
     {
       pfi::concurrent::scoped_lock lock(m_);
       if (lock) {
-        while (q_.size() >= cap_) {
+        while (full_) {
           second -= static_cast<double>(system::time::get_clock_time()) - start;
-          if (second <= 0 || !cond_.wait(m_, second))
+          if (second <= 0 || !cond_push_.wait(m_, second))
             return false;
         }
-        q_.push_back(value);
+        push_(value);
       }
     }
-    cond_.notify_all();
+    cond_pop_.notify_all();
     return true;
   }
 
@@ -112,13 +118,12 @@ public:
     {
       pfi::concurrent::scoped_lock lock(m_);
       if (lock) {
-        while (q_.empty())
-          cond_.wait(m_);
-        value = q_.front();
-        q_.pop_front();
+        while (empty_())
+          cond_pop_.wait(m_);
+        pop_(value);
       }
     }
-    cond_.notify_all();
+    cond_push_.notify();
   }
 
   bool pop(T& value, double second) {
@@ -126,24 +131,47 @@ public:
     {
       pfi::concurrent::scoped_lock lock(m_);
       if (lock) {
-        while (q_.empty()) {
+        while (empty_()) {
           second -= static_cast<double>(system::time::get_clock_time()) - start;
-          if (second <= 0 || !cond_.wait(m_, second))
+          if (second <= 0 || !cond_pop_.wait(m_, second))
             return false;
         }
-        value = q_.front();
-        q_.pop_front();
+        pop_(value);
       }
     }
-    cond_.notify_all();
+    cond_push_.notify();
     return true;
   }
 
 private:
-  const size_t cap_;
-  std::deque<T> q_;
+  std::size_t size_() const {
+    std::ptrdiff_t cap = capacity();
+    if (full_)
+      return cap;
+    return (last_ - first_ + cap) % cap;
+  }
+
+  bool empty_() const {
+    return !full_ && first_ == last_;
+  }
+
+  void push_(const T& value) {
+    q_[last_] = value;
+    last_ = (last_ + 1) % capacity();
+    full_ = first_ == last_;
+  }
+
+  void pop_(T& value) {
+    value = q_[first_];
+    first_ = (first_ + 1) % capacity();
+    full_ = false;
+  }
+
+  std::vector<T> q_;
+  std::ptrdiff_t first_, last_;
+  bool full_;
   mutable mutex m_;
-  condition cond_;
+  condition cond_push_, cond_pop_;
 };
 
 } // concurrent
