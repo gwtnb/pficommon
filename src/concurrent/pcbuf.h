@@ -46,106 +46,106 @@ namespace concurrent {
 template <class T>
 class pcbuf : pfi::lang::noncopyable {
 public:
-  explicit pcbuf(size_t capacity) : cap(capacity) {}
+  explicit pcbuf(size_t capacity) : cap_(capacity) {}
 
   ~pcbuf() {}
 
   size_t size() const {
     {
-      pfi::concurrent::scoped_lock lock(m);
+      pfi::concurrent::scoped_lock lock(m_);
       if (lock)
-        return q.size();
+        return q_.size();
     }
     return 0; /* NOTREACHED */
   }
 
   size_t capacity() const {
-    return cap;
+    return cap_;
   }
 
   bool empty() const {
     {
-      pfi::concurrent::scoped_lock lock(m);
+      pfi::concurrent::scoped_lock lock(m_);
       if (lock)
-        return q.empty();
+        return q_.empty();
     }
     return false; /* NOTREACHED */
   }
 
   void clear() {
     {
-      pfi::concurrent::scoped_lock lock(m);
+      pfi::concurrent::scoped_lock lock(m_);
       if (lock)
-        q.clear();
+        q_.clear();
     }
-    cond.notify_all();
+    cond_.notify_all();
   }
 
   void push(const T& value) {
     {
-      pfi::concurrent::scoped_lock lock(m);
+      pfi::concurrent::scoped_lock lock(m_);
       if (lock) {
-        while (q.size() >= cap)
-          cond.wait(m);
-        q.push_back(value);
+        while (q_.size() >= cap_)
+          cond_.wait(m_);
+        q_.push_back(value);
       }
     }
-    cond.notify_all();
+    cond_.notify_all();
   }
 
   bool push(const T& value, double second) {
     double start = static_cast<double>(system::time::get_clock_time());
     {
-      pfi::concurrent::scoped_lock lock(m);
+      pfi::concurrent::scoped_lock lock(m_);
       if (lock) {
-        while (q.size() >= cap) {
+        while (q_.size() >= cap_) {
           second -= static_cast<double>(system::time::get_clock_time()) - start;
-          if (second <= 0 || !cond.wait(m, second))
+          if (second <= 0 || !cond_.wait(m_, second))
             return false;
         }
-        q.push_back(value);
+        q_.push_back(value);
       }
     }
-    cond.notify_all();
+    cond_.notify_all();
     return true;
   }
 
   void pop(T& value) {
     {
-      pfi::concurrent::scoped_lock lock(m);
+      pfi::concurrent::scoped_lock lock(m_);
       if (lock) {
-        while (q.empty())
-          cond.wait(m);
-        value = q.front();
-        q.pop_front();
+        while (q_.empty())
+          cond_.wait(m_);
+        value = q_.front();
+        q_.pop_front();
       }
     }
-    cond.notify_all();
+    cond_.notify_all();
   }
 
   bool pop(T& value, double second) {
     double start = static_cast<double>(system::time::get_clock_time());
     {
-      pfi::concurrent::scoped_lock lock(m);
+      pfi::concurrent::scoped_lock lock(m_);
       if (lock) {
-        while (q.empty()) {
+        while (q_.empty()) {
           second -= static_cast<double>(system::time::get_clock_time()) - start;
-          if (second <= 0 || !cond.wait(m, second))
+          if (second <= 0 || !cond_.wait(m_, second))
             return false;
         }
-        value = q.front();
-        q.pop_front();
+        value = q_.front();
+        q_.pop_front();
       }
     }
-    cond.notify_all();
+    cond_.notify_all();
     return true;
   }
 
 private:
-  const size_t cap;
-  std::deque<T> q;
-  mutable mutex m;
-  condition cond;
+  const size_t cap_;
+  std::deque<T> q_;
+  mutable mutex m_;
+  condition cond_;
 };
 
 } // concurrent
