@@ -48,8 +48,6 @@ class pcbuf : pfi::lang::noncopyable {
 public:
   explicit pcbuf(size_t capacity) : cap_(capacity) {}
 
-  ~pcbuf() {}
-
   size_t size() const {
     {
       pfi::concurrent::scoped_lock lock(m_);
