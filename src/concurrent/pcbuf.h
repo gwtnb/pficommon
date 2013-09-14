@@ -40,19 +40,17 @@
 #include "../lang/util.h"
 #include "../system/time_util.h"
 
-namespace pfi{
-namespace concurrent{
+namespace pfi {
+namespace concurrent {
 
-template<class T>
-class pcbuf : pfi::lang::noncopyable{
+template <class T>
+class pcbuf : pfi::lang::noncopyable {
 public:
-  explicit pcbuf(size_t capacity) :cap(capacity){
-  }
+  explicit pcbuf(size_t capacity) : cap(capacity) {}
 
-  ~pcbuf(){
-  }
+  ~pcbuf() {}
 
-  size_t size() const{
+  size_t size() const {
     {
       pfi::concurrent::scoped_lock lock(m);
       if (lock)
@@ -61,11 +59,11 @@ public:
     return 0; /* NOTREACHED */
   }
 
-  size_t capacity() const{
+  size_t capacity() const {
     return cap;
   }
 
-  bool empty() const{
+  bool empty() const {
     {
       pfi::concurrent::scoped_lock lock(m);
       if (lock)
@@ -74,7 +72,7 @@ public:
     return false; /* NOTREACHED */
   }
 
-  void clear(){
+  void clear() {
     {
       pfi::concurrent::scoped_lock lock(m);
       if (lock)
@@ -83,7 +81,7 @@ public:
     cond.notify_all();
   }
 
-  void push(const T& value){
+  void push(const T& value) {
     {
       pfi::concurrent::scoped_lock lock(m);
       if (lock) {
@@ -95,7 +93,7 @@ public:
     cond.notify_all();
   }
 
-  bool push(const T& value, double second){
+  bool push(const T& value, double second) {
     double start = static_cast<double>(system::time::get_clock_time());
     {
       pfi::concurrent::scoped_lock lock(m);
@@ -112,7 +110,7 @@ public:
     return true;
   }
 
-  void pop(T& value){
+  void pop(T& value) {
     {
       pfi::concurrent::scoped_lock lock(m);
       if (lock) {
@@ -125,7 +123,7 @@ public:
     cond.notify_all();
   }
 
-  bool pop(T& value, double second){
+  bool pop(T& value, double second) {
     double start = static_cast<double>(system::time::get_clock_time());
     {
       pfi::concurrent::scoped_lock lock(m);
@@ -144,7 +142,6 @@ public:
   }
 
 private:
-
   const size_t cap;
   std::deque<T> q;
   mutable mutex m;
