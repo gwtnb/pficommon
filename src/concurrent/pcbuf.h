@@ -69,11 +69,9 @@ public:
   void clear() {
     pfi::concurrent::scoped_lock lock(m_);
     if (lock) {
-      bool should_notify = full_;
       first_ = last_ = 0;
       full_ = false;
-      if (should_notify)
-        cond_push_.notify_all();
+      cond_push_.notify_all();
     }
   }
 
