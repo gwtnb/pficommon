@@ -110,7 +110,7 @@ public:
         push_(value);
       }
     }
-    cond_pop_.notify_all();
+    cond_pop_.notify();
     return true;
   }
 
