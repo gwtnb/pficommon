@@ -49,11 +49,9 @@ public:
   explicit pcbuf(size_t capacity) : q_(capacity), first_(0), last_(0), full_(capacity == 0) {}
 
   size_t size() const {
-    {
-      pfi::concurrent::scoped_lock lock(m_);
-      if (lock)
-        return size_();
-    }
+    pfi::concurrent::scoped_lock lock(m_);
+    if (lock)
+      return size_();
     return 0; /* NOTREACHED */
   }
 
@@ -62,85 +60,73 @@ public:
   }
 
   bool empty() const {
-    {
-      pfi::concurrent::scoped_lock lock(m_);
-      if (lock)
-        return empty_();
-    }
+    pfi::concurrent::scoped_lock lock(m_);
+    if (lock)
+      return empty_();
     return false; /* NOTREACHED */
   }
 
   void clear() {
-    bool should_notify = false;
-    {
-      pfi::concurrent::scoped_lock lock(m_);
-      if (lock) {
-        if (full_)
-          should_notify = true;
-        first_ = last_ = 0;
-        full_ = false;
-      }
+    pfi::concurrent::scoped_lock lock(m_);
+    if (lock) {
+      bool should_notify = full_;
+      first_ = last_ = 0;
+      full_ = false;
+      if (should_notify)
+        cond_push_.notify_all();
     }
-    if (should_notify)
-      cond_push_.notify_all();
   }
 
   void push(const T& value) {
-    {
-      pfi::concurrent::scoped_lock lock(m_);
-      if (lock) {
-        while (full_)
-          cond_push_.wait(m_);
-        push_(value);
-      }
+    pfi::concurrent::scoped_lock lock(m_);
+    if (lock) {
+      while (full_)
+        cond_push_.wait(m_);
+      push_(value);
+      cond_pop_.notify();
     }
-    cond_pop_.notify();
   }
 
   bool push(const T& value, double second) {
     double start = static_cast<double>(system::time::get_clock_time());
-    {
-      pfi::concurrent::scoped_lock lock(m_);
-      if (lock) {
-        while (full_) {
-          second -= static_cast<double>(system::time::get_clock_time()) - start;
-          if (second <= 0 || !cond_push_.wait(m_, second))
-            return false;
-        }
-        push_(value);
+    pfi::concurrent::scoped_lock lock(m_);
+    if (lock) {
+      while (full_) {
+        second -= static_cast<double>(system::time::get_clock_time()) - start;
+        if (second <= 0 || !cond_push_.wait(m_, second))
+          return false;
       }
+      push_(value);
+      cond_pop_.notify();
+      return true;
     }
-    cond_pop_.notify();
-    return true;
+    return false; /* NOTREACHED */
   }
 
   void pop(T& value) {
-    {
-      pfi::concurrent::scoped_lock lock(m_);
-      if (lock) {
-        while (empty_())
-          cond_pop_.wait(m_);
-        pop_(value);
-      }
+    pfi::concurrent::scoped_lock lock(m_);
+    if (lock) {
+      while (empty_())
+        cond_pop_.wait(m_);
+      pop_(value);
+      cond_push_.notify();
     }
-    cond_push_.notify();
   }
 
   bool pop(T& value, double second) {
     double start = static_cast<double>(system::time::get_clock_time());
-    {
-      pfi::concurrent::scoped_lock lock(m_);
-      if (lock) {
-        while (empty_()) {
-          second -= static_cast<double>(system::time::get_clock_time()) - start;
-          if (second <= 0 || !cond_pop_.wait(m_, second))
-            return false;
-        }
-        pop_(value);
+    pfi::concurrent::scoped_lock lock(m_);
+    if (lock) {
+      while (empty_()) {
+        second -= static_cast<double>(system::time::get_clock_time()) - start;
+        if (second <= 0 || !cond_pop_.wait(m_, second))
+          return false;
       }
+      pop_(value);
+      cond_push_.notify();
+      return true;
     }
-    cond_push_.notify();
-    return true;
+    return false; /* NOTREACHED */
   }
 
 private:
