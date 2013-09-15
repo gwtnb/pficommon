@@ -58,7 +58,7 @@ public:
   }
 
   size_t capacity() const {
-      return q_.size();
+    return q_.size();
   }
 
   bool empty() const {
