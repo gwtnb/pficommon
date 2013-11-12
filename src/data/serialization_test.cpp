@@ -380,25 +380,6 @@ public:
   }
 };
 
-TEST(serialization, stream){
-
-  stringstream oss;
-  { 
-    stringstream ss;
-    ss<<"stream test";
-    binary_oarchive oa(oss);
-    oa<<stream<>(ss);
-  }
-  {
-    binary_iarchive ia(oss);
-    stream<path_cls> s;
-    ia>>s;
-    ostringstream res;
-    res<<s.get().rdbuf();
-    EXPECT_EQ(res.str(), "stream test");
-  }
-}
-
 TEST(serialization, safe_bool) {
   {
     std::stringstream ss;

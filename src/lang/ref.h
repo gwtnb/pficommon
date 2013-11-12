@@ -32,14 +32,25 @@
 #ifndef INCLUDE_GUARD_PFI_LANG_REF_H_
 #define INCLUDE_GUARD_PFI_LANG_REF_H_
 
+#include <functional>
+#ifdef __GLIBCXX__ // libstdc++
 #include <tr1/functional>
+#endif
 
 namespace pfi {
 namespace lang {
 
+namespace detail {
+#ifdef _LIBCPP_VERSION // libc++
+namespace ref_ns = ::std;
+#else
+namespace ref_ns = ::std::tr1;
+#endif
+}
+
 template <class T>
-class reference_wrapper : public std::tr1::reference_wrapper<T> {
-  typedef std::tr1::reference_wrapper<T> base;
+class reference_wrapper : public detail::ref_ns::reference_wrapper<T> {
+  typedef detail::ref_ns::reference_wrapper<T> base;
 
 public:
   explicit reference_wrapper(T& x) : base(x) {}

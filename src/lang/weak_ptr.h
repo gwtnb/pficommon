@@ -33,17 +33,27 @@
 #define INCLUDE_GUARD_PFI_LANG_WEAK_PTR_H_
 
 #include <memory>
+#ifdef __GLIBCXX__ // libstdc++
 #include <tr1/memory>
+#endif
 
 namespace pfi {
 namespace lang {
+
+namespace detail {
+#ifdef _LIBCPP_VERSION // libc++
+namespace weak_ptr_ns = ::std;
+#else
+namespace weak_ptr_ns = ::std::tr1;
+#endif
+}
 
 template <class T, class TM>
 class shared_ptr;
 
 template <class T>
-class weak_ptr : public std::tr1::weak_ptr<T> {
-  typedef std::tr1::weak_ptr<T> base;
+class weak_ptr : public detail::weak_ptr_ns::weak_ptr<T> {
+  typedef detail::weak_ptr_ns::weak_ptr<T> base;
 
 public:
   weak_ptr() {}

@@ -144,14 +144,14 @@ public:
   }
 
   basic_socketstream(const std::string &host, uint16_t port)
-    : std::basic_iostream<C,T>(){
+    : std::basic_iostream<C,T>(0){
     this->init(&sockbuf);
     connect(host, port);
   }
 
   template <class PSOCK>
   basic_socketstream(PSOCK sock)
-    : std::basic_iostream<C,T>(){
+    : std::basic_iostream<C,T>(0){
     this->init(&sockbuf);
     setsock(sock);
   }

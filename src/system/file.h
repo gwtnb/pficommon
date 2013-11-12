@@ -34,12 +34,15 @@
 
 #include <sys/types.h>
 #include <iostream>
+#ifdef __GLIBCXX__ // libstdc++
 #include <ext/stdio_filebuf.h>
+#endif
 
 namespace pfi{
 namespace system{
 namespace file{
 
+#ifdef __GLIBCXX__ // libstdc++
 class fd_stream : public std::iostream{
 public:
   explicit fd_stream(int fd)
@@ -49,6 +52,7 @@ public:
 private:
   __gnu_cxx::stdio_filebuf<char> fb;
 };
+#endif
 
 std::iostream *tmpstream(std::string &tmpl);
 ssize_t get_file_size(const std::string & fn);

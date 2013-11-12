@@ -44,10 +44,13 @@ namespace file{
 
 iostream *tmpstream(string &tmpl)
 {
+#ifdef __GLIBCXX__
   if (tmpl.length()<6) return NULL;
   int fd=mkstemp(&tmpl[0]);
   if (fd<0) return NULL;
   return new fd_stream(fd);
+#endif
+  return NULL;
 }
 
 ssize_t get_file_size(const string & fn)

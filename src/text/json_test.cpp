@@ -236,8 +236,9 @@ TEST(json, to_json)
 
     ostringstream oss;
     oss<<to_json(mm);
-    
-    EXPECT_EQ("{\"abc\":1.23,\"hoge\":3.14}", oss.str());
+
+    EXPECT_TRUE("{\"abc\":1.23,\"hoge\":3.14}" == oss.str() ||
+                "{\"hoge\":3.14,\"abc\":1.23}" == oss.str());
   }
 
   {
@@ -967,14 +968,16 @@ TEST(json, optional)
     opt1 a;
     a.abc=123;
     ostringstream oss; oss<<to_json(a);
-    EXPECT_EQ(oss.str(), "{\"abc\":123,\"def\":null}");
+    EXPECT_TRUE("{\"abc\":123,\"def\":null}" == oss.str() ||
+                "{\"def\":null,\"abc\":123}" == oss.str());
   }
   {
     opt1 a;
     a.abc=123;
     a.def=456;
     ostringstream oss; oss<<to_json(a);
-    EXPECT_EQ(oss.str(), "{\"abc\":123,\"def\":456}");
+    EXPECT_TRUE("{\"abc\":123,\"def\":456}" == oss.str() ||
+                "{\"def\":456,\"abc\":123}" == oss.str());
   }
 }
 

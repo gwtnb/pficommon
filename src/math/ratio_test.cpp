@@ -45,17 +45,17 @@ using namespace pfi::lang;
 using namespace pfi::math::random;
 using namespace pfi::math::ratio;
 
-ratio<int> gen_ratio(){
+::pfi::math::ratio::ratio<int> gen_ratio(){
   static pfi::math::random::random<mersenne_twister> r;
   int num=r.next_int(0,1000)-500;
   int den=r.next_int(0,1000)-500;
   if(den>=0)++den;
   if(num>=0)++num;
-  return ratio<int>(num,den);
+  return ::pfi::math::ratio::ratio<int>(num,den);
 }
 
 
-bool expect_eq(const ratio<int> &a, const ratio<int> &b){
+bool expect_eq(const ::pfi::math::ratio::ratio<int> &a, const ::pfi::math::ratio::ratio<int> &b){
   bool ret=a==b; 
   ostringstream oss; oss << a << "!=" << b << endl;
   EXPECT_TRUE(ret) << oss.str();
@@ -63,13 +63,13 @@ bool expect_eq(const ratio<int> &a, const ratio<int> &b){
 }
 
 TEST(ratio,printing){
-  std::cerr << ratio<int>(1341,398) << endl;
+  std::cerr << ::pfi::math::ratio::ratio<int>(1341,398) << endl;
 }
 
-ratio<int> zero(0);
-ratio<int> one(1);
+::pfi::math::ratio::ratio<int> zero(0);
+::pfi::math::ratio::ratio<int> one(1);
 
-TEST_FIELD(ratio_ring, 1000, ratio<int>, gen_ratio, 
+TEST_FIELD(ratio_ring, 1000, ::pfi::math::ratio::ratio<int>, gen_ratio, 
            zero,one,expect_eq);
 
 

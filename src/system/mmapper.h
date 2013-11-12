@@ -75,15 +75,12 @@ private:
   int fd;
 };
 
-}
-}
-}
-
-namespace std {
-template <>
-inline void swap(pfi::system::mmapper::mmapper& x, pfi::system::mmapper::mmapper& y)
+void swap(mmapper& x, mmapper& y)
 {
   x.swap(y);
+}
+
+}
 }
 }
 
