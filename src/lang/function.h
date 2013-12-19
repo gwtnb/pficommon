@@ -32,6 +32,8 @@
 #ifndef INCLUDE_GUARD_PFI_LANG_FUNCTION_H_
 #define INCLUDE_GUARD_PFI_LANG_FUNCTION_H_
 
+#include <cassert>
+#include <cstddef>
 #include <functional>
 #ifdef __GLIBCXX__ // libstdc++
 #include <tr1/functional>
@@ -62,6 +64,55 @@ public:
     base::operator=(f);
     return *this;
   }
+
+#ifdef _LIBCPP_VERSION
+  friend bool operator==(const function& f, std::nullptr_t p) {
+    return static_cast<const base&>(f) == p;
+  }
+  friend bool operator==(std::nullptr_t p, const function& f) {
+    return f == p;
+  }
+  friend bool operator!=(const function& f, std::nullptr_t p) {
+    return !(f == p);
+  }
+  friend bool operator!=(std::nullptr_t p, const function& f) {
+    return f != p;
+  }
+
+  friend bool operator==(const function& f, int p) {
+    assert(!p);
+    return f == nullptr;
+  }
+  friend bool operator==(int p, const function& f) {
+    assert(!p);
+    return nullptr == f;
+  }
+  friend bool operator!=(const function& f, int p) {
+    assert(!p);
+    return f != nullptr;
+  }
+  friend bool operator!=(int p, const function& f) {
+    assert(!p);
+    return nullptr != f;
+  }
+
+  friend bool operator==(const function& f, long p) {
+    assert(!p);
+    return f == nullptr;
+  }
+  friend bool operator==(long p, const function& f) {
+    assert(!p);
+    return nullptr == f;
+  }
+  friend bool operator!=(const function& f, long p) {
+    assert(!p);
+    return f != nullptr;
+  }
+  friend bool operator!=(long p, const function& f) {
+    assert(!p);
+    return nullptr != f;
+  }
+#endif
 };
 
 } // lang
