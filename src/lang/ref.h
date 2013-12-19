@@ -35,27 +35,184 @@
 #include <functional>
 #ifdef __GLIBCXX__ // libstdc++
 #include <tr1/functional>
+#elif defined(_LIBCPP_VERSION) // libc++
+#include <type_traits>
 #endif
 
 namespace pfi {
 namespace lang {
 
-namespace detail {
-#ifdef _LIBCPP_VERSION // libc++
-namespace ref_ns = ::std;
-#else
-namespace ref_ns = ::std::tr1;
-#endif
-}
+#ifdef __GLIBCXX__ // libstdc++
 
 template <class T>
-class reference_wrapper : public detail::ref_ns::reference_wrapper<T> {
-  typedef detail::ref_ns::reference_wrapper<T> base;
+class reference_wrapper : public ::std::tr1::reference_wrapper<T> {
+  typedef ::std::tr1::reference_wrapper<T> base;
 
 public:
   explicit reference_wrapper(T& x) : base(x) {}
   T* get_pointer() const { return &this->get(); }
 };
+
+#else
+
+template <class T>
+class reference_wrapper {
+public:
+  reference_wrapper(T& x) : p_(&x) {}
+
+  operator T&() const { return *p_; }
+  T& get() const { return *p_; }
+  T* get_pointer() const { return p_; }
+
+  template <class U = T>
+  typename std::result_of<U& ()>::type
+  operator()() const {
+    return (*p_)();
+  }
+
+  template <class A>
+  typename std::result_of<T& (A&)>::type
+  operator()(A& a) const {
+    return call_op(a);
+  }
+  template <class A>
+  typename std::result_of<T& (const A&)>::type
+  operator()(const A& a) const {
+    return call_op(a);
+  }
+
+  template <class A0, class A1>
+  typename std::result_of<T& (A0&, A1&)>::type
+  operator()(A0& a0, A1& a1) const {
+    return call_op(a0, a1);
+  }
+  template <class A0, class A1>
+  typename std::result_of<T& (A0&, const A1&)>::type
+  operator()(A0& a0, const A1& a1) const {
+    return call_op(a0, a1);
+  }
+  template <class A0, class A1>
+  typename std::result_of<T& (const A0&, A1&)>::type
+  operator()(const A0& a0, A1& a1) const {
+    return call_op(a0, a1);
+  }
+  template <class A0, class A1>
+  typename std::result_of<T& (const A0&, const A1&)>::type
+  operator()(const A0& a0, const A1& a1) const {
+    return call_op(a0, a1);
+  }
+
+  template <class A0, class A1, class A2>
+  typename std::result_of<T& (A0&, A1&, A2&)>::type
+  operator()(A0& a0, A1& a1, A2& a2) const {
+    return call_op(a0, a1, a2);
+  }
+  template <class A0, class A1, class A2>
+  typename std::result_of<T& (A0&, A1&, const A2&)>::type
+  operator()(A0& a0, A1& a1, const A2& a2) const {
+    return call_op(a0, a1, a2);
+  }
+  template <class A0, class A1, class A2>
+  typename std::result_of<T& (A0&, const A1&, A2&)>::type
+  operator()(A0& a0, const A1& a1, A2& a2) const {
+    return call_op(a0, a1, a2);
+  }
+  template <class A0, class A1, class A2>
+  typename std::result_of<T& (A0&, const A1&, const A2&)>::type
+  operator()(A0& a0, const A1& a1, const A2& a2) const {
+    return call_op(a0, a1, a2);
+  }
+  template <class A0, class A1, class A2>
+  typename std::result_of<T& (const A0&, A1&, A2&)>::type
+  operator()(const A0& a0, A1& a1, A2& a2) const {
+    return call_op(a0, a1, a2);
+  }
+  template <class A0, class A1, class A2>
+  typename std::result_of<T& (const A0&, A1&, const A2&)>::type
+  operator()(const A0& a0, A1& a1, const A2& a2) const {
+    return call_op(a0, a1, a2);
+  }
+  template <class A0, class A1, class A2>
+  typename std::result_of<T& (const A0&, const A1&, A2&)>::type
+  operator()(const A0& a0, const A1& a1, A2& a2) const {
+    return call_op(a0, a1, a2);
+  }
+  template <class A0, class A1, class A2>
+  typename std::result_of<T& (const A0&, const A1&, const A2&)>::type
+  operator()(const A0& a0, const A1& a1, const A2& a2) const {
+    return call_op(a0, a1, a2);
+  }
+
+private:
+  template <class A>
+  typename std::result_of<T& (A&)>::type
+  call_op(A& a,
+          typename std::enable_if<std::is_member_function_pointer<T>::value, A>::type* = 0) const
+  {
+    return (a.**p_)();
+  }
+  template <class A>
+  typename std::result_of<T& (A&)>::type
+  call_op(A* a,
+          typename std::enable_if<std::is_member_function_pointer<T>::value, A>::type* = 0) const
+  {
+    return (a->**p_)();
+  }
+  template <class A>
+  typename std::result_of<T& (A&)>::type
+  call_op(A& a,
+          typename std::enable_if<!std::is_member_function_pointer<T>::value, A>::type* = 0) const
+  {
+    return (*p_)(a);
+  }
+
+  template <class A0, class A1>
+  typename std::result_of<T& (A0&, A1&)>::type
+  call_op(A0& a0, A1& a1,
+          typename std::enable_if<std::is_member_function_pointer<T>::value, A0>::type* = 0) const
+  {
+    return (a0.**p_)(a1);
+  }
+  template <class A0, class A1>
+  typename std::result_of<T& (A0&, A1&)>::type
+  call_op(A0* a0, A1& a1,
+          typename std::enable_if<std::is_member_function_pointer<T>::value, A0>::type* = 0) const
+  {
+    return (a0->**p_)(a1);
+  }
+  template <class A0, class A1>
+  typename std::result_of<T& (A0&, A1&)>::type
+  call_op(A0& a0, A1& a1,
+          typename std::enable_if<!std::is_member_function_pointer<T>::value, A0>::type* = 0) const
+  {
+    return (*p_)(a0, a1);
+  }
+
+  template <class A0, class A1, class A2>
+  typename std::result_of<T& (A0&, A1&, A2&)>::type
+  call_op(A0& a0, A1& a1, A2& a2,
+          typename std::enable_if<std::is_member_function_pointer<T>::value, A0>::type* = 0) const
+  {
+    return (a0.**p_)(a1, a2);
+  }
+  template <class A0, class A1, class A2>
+  typename std::result_of<T& (A0&, A1&, A2&)>::type
+  call_op(A0* a0, A1& a1, A2& a2,
+          typename std::enable_if<std::is_member_function_pointer<T>::value, A0>::type* = 0) const
+  {
+    return (a0->**p_)(a1, a2);
+  }
+  template <class A0, class A1, class A2>
+  typename std::result_of<T& (A0&, A1&, A2&)>::type
+  call_op(A0& a0, A1& a1, A2& a2,
+          typename std::enable_if<!std::is_member_function_pointer<T>::value, A0>::type* = 0) const
+  {
+    return (*p_)(a0, a1, a2);
+  }
+
+  T* p_;
+};
+#endif
 
 template <class T>
 inline reference_wrapper<T> ref(T& r)
