@@ -42,11 +42,21 @@
 namespace pfi {
 namespace lang {
 
+namespace detail {
 #ifdef __GLIBCXX__ // libstdc++
+namespace ref_ns = ::std::tr1;
+#elif defined(_LIBCPP_VERSION) // libc++
+namespace ref_ns = ::std;
+#endif
+}
+
+// libstdc++ or (libc++ and (c++11 or later))
+#if defined(__GLIBCXX__) || \
+    (defined(_LIBCPP_VERSION) && __cplusplus >= 201103L)
 
 template <class T>
-class reference_wrapper : public ::std::tr1::reference_wrapper<T> {
-  typedef ::std::tr1::reference_wrapper<T> base;
+class reference_wrapper : public detail::ref_ns::reference_wrapper<T> {
+  typedef detail::ref_ns::reference_wrapper<T> base;
 
 public:
   explicit reference_wrapper(T& x) : base(x) {}
