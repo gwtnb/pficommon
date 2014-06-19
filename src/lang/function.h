@@ -32,14 +32,25 @@
 #ifndef INCLUDE_GUARD_PFI_LANG_FUNCTION_H_
 #define INCLUDE_GUARD_PFI_LANG_FUNCTION_H_
 
+#include <functional>
+#ifdef __GLIBCXX__
 #include <tr1/functional>
+#endif
 
 namespace pfi {
 namespace lang {
 
+namespace detail {
+#ifdef __GLIBCXX__
+namespace function_ns = ::std::tr1;
+#else
+namespace function_ns = ::std;
+#endif
+}
+
 template <class F>
-class function : public std::tr1::function<F> {
-  typedef std::tr1::function<F> base;
+class function : public detail::function_ns::function<F> {
+  typedef detail::function_ns::function<F> base;
 
 public:
   function() {}

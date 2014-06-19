@@ -5,12 +5,6 @@ def configure(conf):
   pass
 
 def build(bld):
-  bld.program(
-    source = 'main.cpp',
-    includes = '.',
-    target = 'genrpc',
-    use = 'pficommon')
-  
   bld.install_files('${PREFIX}/share/pficommon', [
       'genrpc_template.cpp',
       'genrpc_extract_names.cpp',

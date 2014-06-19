@@ -42,6 +42,7 @@ namespace pfi{
 namespace system{
 namespace file{
 
+#ifdef __GLIBCXX__
 iostream *tmpstream(string &tmpl)
 {
   if (tmpl.length()<6) return NULL;
@@ -49,6 +50,7 @@ iostream *tmpstream(string &tmpl)
   if (fd<0) return NULL;
   return new fd_stream(fd);
 }
+#endif
 
 ssize_t get_file_size(const string & fn)
 {

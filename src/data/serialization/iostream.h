@@ -41,7 +41,6 @@
 #include <unistd.h>
 
 #include "../../lang/shared_ptr.h"
-#include "../../system/file.h"
 
 namespace pfi{
 namespace data{
@@ -59,18 +58,6 @@ public:
 template <class PathFunc=path::tmp_path>
 class stream{
 public:
-  stream()
-    : fname(PathFunc()()+std::string("/serializeXXXXXX"))
-    , spios(pfi::system::file::tmpstream(fname))
-    , pios(spios.get()){
-  }
-
-  stream(PathFunc pf)
-    : fname(pf()+std::string("/serializeXXXXXX"))
-    , spios(pfi::system::file::tmpstream(fname))
-    , pios(spios.get()){
-  }
-
   stream(std::iostream &ios)
     :pios(&ios){}
 

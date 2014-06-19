@@ -43,7 +43,10 @@
 using namespace std;
 using namespace pfi::lang;
 using namespace pfi::math::random;
-using namespace pfi::math::ratio;
+
+namespace pfi {
+namespace math {
+namespace ratio {
 
 ratio<int> gen_ratio(){
   static pfi::math::random::random<mersenne_twister> r;
@@ -72,4 +75,6 @@ ratio<int> one(1);
 TEST_FIELD(ratio_ring, 1000, ratio<int>, gen_ratio, 
            zero,one,expect_eq);
 
-
+}
+}
+}
